@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Slackr</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- You can add your styles and scripts here -->
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link rel="stylesheet" type="text/css" media="screen" href="styles/provided.css" />
+  <script type="module" src="src/helpers.js"></script>
+</head>
+
+<body>
+  <!-- This is an example app structure, you can modify this as much as you choose -->
+  <header class="banner">
+    <h1>Slackr</h1>
+  </header>
+  <main role="main" class="container my-4">
+    <!-- Login form -->
+    <div id="login-container" class="card p-4 shadow-sm mb-4">
+      <h2 class="h4 mb-3">Login</h2>
+      <label for="login-email" class="form-label">Email</label>
+      <input type="text" id="login-email" class="form-control mb-2" />
+      <label for="login-password" class="form-label">Password</label>
+      <input type="password" id="login-password" class="form-control mb-3" />
+      <button id="login-submit" class="btn btn-primary w-100">Login</button>
+      <p class="mt-3 mb-0 text-center">
+        No account? <button id="register-link" class="btn btn-link p-0">Register</button>
+      </p>
+    </div>
+
+    <!-- Register form  -->
+    <div id="register-container" style="display: none;" class="card p-4 shadow-sm mb-4">
+      <h2 class="h4 mb-3">Register</h2>
+      <label for="register-email" class="form-label">Email</label>
+      <input type="text" id="register-email" class="form-control mb-2" />
+      <label for="register-name" class="form-label">Name</label>
+      <input type="text" id="register-name" class="form-control mb-2" />
+      <label for="register-password" class="form-label">Password</label>
+      <input type="password" id="register-password" class="form-control mb-2" />
+      <label for="register-password-confirm" class="form-label">Confirm Password</label>
+      <input type="password" id="register-password-confirm" class="form-control mb-3" />
+      <button id="register-submit" class="btn btn-success w-100">Register</button>
+      <p class="mt-3 mb-0 text-center">
+        Already have an account? <button id="login-link" class="btn btn-link p-0">Login</button>
+      </p>
+    </div>
+
+    <!-- Error popup (Bootstrap modal) -->
+    <div id="error-body" class="modal fade" tabindex="-1" aria-labelledby="error-modal-title">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="error-modal-title">Error</h5>
+            <button id="error-close" type="button" class="btn-close" aria-label="Close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <p id="error-msg">An error occurred!</p>
+          </div>
+          <div class="modal-footer">
+            <button id="error-close-footer" type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dashboard (hidden by default) -->
+    <div id="dashboard-container" style="display: none;">
+      <!-- Top navigation bar -->
+      <nav class="dashboard-navbar">
+        <div class="container-fluid">
+          <div class="d-flex justify-content-between align-items-center w-100">
+            <div class="dashboard-title">
+              <h2 class="h4 mb-0">Dashboard</h2>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+              <div id="avatar-label" class="d-flex align-items-center" style="cursor: pointer;">
+                <img id="avatar-image" src="" alt="Avatar" class="rounded-circle me-2" style="width: 36px; height: 36px; object-fit: cover; display: none; border: 2px solid #ddd;">
+                <span id="avatar-text" class="fw-bold text-dark"></span>
+              </div>
+              <button id="logout-button" class="btn btn-outline-secondary btn-sm">Logout</button>
+            </div>
+          </div>
+        </div>
+      </nav>
+      
+      <!-- Main content area -->
+      <div id="dashboard-extra" style="display: none;" class="dashboard-content">
+        <div class="container-fluid py-4">
+        <div class="row g-3">
+          <aside class="col-12 col-md-3">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+              <h3 class="h6 mb-0">Channels</h3>
+              <button id="create-channel-button" class="btn btn-sm btn-primary">New</button>
+            </div>
+            <div id="channel-list">
+              <div class="mb-3">
+                <h6 class="small text-success mb-1">Public Channels</h6>
+                <div id="public-channel-list" class="list-group small mb-3"></div>
+              </div>
+              <div class="mb-3">
+                <h6 class="small text-warning mb-1">Private Channels</h6>
+                <div id="private-channel-list" class="list-group small"></div>
+              </div>
+            </div>
+          </aside>
+          <section class="col-12 col-md-9">
+            <div id="create-channel-container" style="display: none;" class="card card-body mb-3">
+              <h4 class="h6">Create Channel</h4>
+              <label for="create-channel-name" class="form-label">Name</label>
+              <input id="create-channel-name" class="form-control mb-2" type="text" />
+              <label for="create-channel-description" class="form-label">Description (optional)</label>
+              <textarea id="create-channel-description" class="form-control mb-2" rows="2"></textarea>
+              <div class="form-check mb-3">
+                <input class="form-check-input" type="checkbox" id="create-channel-is-private" />
+                <label class="form-check-label" for="create-channel-is-private">Private channel</label>
+              </div>
+              <button id="create-channel-submit" class="btn btn-success">Create</button>
+            </div>
+            <div id="channel-details-container" class="card card-body mb-3">
+              <p class="text-muted mb-0">Select a channel to view details and messages.</p>
+            </div>
+            <!-- Pinned messages section -->
+            <div id="pinned-messages-container" class="card card-body mb-3" style="display: none;">
+              <h6 class="mb-2">📌 Pinned Messages</h6>
+              <div id="pinned-messages-list"></div>
+            </div>
+            <!-- Messages display area -->
+            <div id="messages-container" class="card card-body mb-3" style="display: none;">
+              <div id="messages-list" style="max-height: 500px; overflow-y: auto;"></div>
+            </div>
+            <!-- Message input form -->
+            <div id="message-input-container" class="card card-body" style="display: none;">
+              <div class="input-group mb-2">
+                <textarea id="message-input" class="form-control" rows="2" placeholder="Type a message..."></textarea>
+                <button id="message-send-button" class="btn btn-primary">Send</button>
+              </div>
+              <div class="d-flex align-items-center">
+                <input type="file" id="message-image-input" accept="image/*" style="display: none;">
+                <label for="message-image-input" class="btn btn-sm btn-outline-secondary mb-0">📷 Upload Photo</label>
+                <span id="image-preview-text" class="ms-2 small text-muted"></span>
+              </div>
+            </div>
+          </section>
+        </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Invite users modal -->
+    <div id="channel-invite-container" class="modal fade" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Invite Users to Channel</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div id="invite-users-list"></div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button id="invite-submit-button" type="button" class="btn btn-primary">Invite</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Profile view modal -->
+    <div id="profile-container" class="modal fade" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">User Profile</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div class="text-center mb-3">
+              <img id="profile-image" src="" alt="Profile" class="rounded-circle" style="width: 100px; height: 100px; object-fit: cover;">
+            </div>
+            <div class="mb-2"><strong>Name:</strong> <span id="profile-name"></span></div>
+            <div class="mb-2"><strong>Email:</strong> <span id="profile-email"></span></div>
+            <div class="mb-2"><strong>Bio:</strong> <span id="profile-bio"></span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Own profile edit modal -->
+    <div id="own-profile-container" class="modal fade" tabindex="-1">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Edit Your Profile</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div class="text-center mb-3">
+              <img id="own-profile-image-preview" src="" alt="Profile" class="rounded-circle mb-2" style="width: 100px; height: 100px; object-fit: cover;">
+              <br>
+              <input type="file" id="own-profile-image-input" accept="image/*" style="display: none;">
+              <label for="own-profile-image-input" class="btn btn-sm btn-outline-primary">Change Photo</label>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Name</label>
+              <input type="text" id="own-profile-name" class="form-control">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Email</label>
+              <input type="email" id="own-profile-email" class="form-control">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Bio</label>
+              <textarea id="own-profile-bio" class="form-control" rows="3"></textarea>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">New Password</label>
+              <div class="input-group">
+                <input type="password" id="own-profile-password" class="form-control">
+                <button id="toggle-password-visibility" class="btn btn-outline-secondary" type="button">👁️</button>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button id="own-profile-save-button" type="button" class="btn btn-primary">Save</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Image viewer modal -->
+    <div id="image-viewer-modal" class="modal fade" tabindex="-1">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Image</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body text-center">
+            <button id="image-viewer-prev" class="btn btn-outline-primary me-2">← Prev</button>
+            <img id="image-viewer-img" src="" alt="Viewer" class="img-fluid" style="max-height: 70vh;">
+            <button id="image-viewer-next" class="btn btn-outline-primary ms-2">Next →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+  <footer>
+    <p>&copy; Slackr</p>
+  </footer>
+  <!-- Bootstrap JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+  <script type="module" src="src/main.js"></script>
+</body>
+
+</html>
